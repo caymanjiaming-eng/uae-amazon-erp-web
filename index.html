@@ -2,11 +2,11 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
-  <meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
   <meta name="referrer" content="no-referrer">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>UAE Amazon ERP</title>
+  <title>UAE Amazon ERP · VC 工作台</title>
   <style>:root{font:14px/1.5 "Segoe UI","Microsoft YaHei",sans-serif;color:#172622;background:#f3f6f4;--line:#d8e3dd;--green:#125b46;--muted:#52665d}
 *{box-sizing:border-box}
 body{margin:0}
@@ -49,369 +49,289 @@ dialog label{display:grid;margin:9px 0}
 dialog input{max-width:160px}
 dialog textarea{width:100%}
 @media(max-width:640px){main{padding:0 10px 24px}.top{padding:16px 12px}td:first-child{min-width:120px}}
+
+.top p{margin:5px 0 0;color:#bad8cd}.toplink{color:white;border:1px solid #548575;border-radius:7px;padding:8px 14px;text-decoration:none}
+.import-box{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:20px}.import-box h2{margin-bottom:3px}.import-box p{margin:4px 0}.import-box input{max-width:330px}.import-box #load-status{margin-left:auto}.import-box #load-status.error{color:#9e271c}
+#file-info{font-size:12px;overflow-wrap:anywhere}#workbook-nav{gap:6px}.view-heading{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap}.view-heading p{margin:0 0 12px;max-width:840px}.mode{display:flex;gap:5px}.mode .active{background:#125b46;color:white}
+#wb-filters{padding-top:8px;border-top:1px solid var(--line)}#wb-filters input{width:145px}#wb-filters select{max-width:230px}#scope-note{padding:8px 10px;background:#f3f6f4;border-radius:5px}#logic-box{border-top:1px solid var(--line);padding-top:10px}#logic-body li{margin:6px 0}#logic-body code{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}
+.intro-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}.intro-grid div{border-top:2px solid #9bc2b0}.intro-grid p{color:var(--muted)}
+#wb-table .scroll{max-height:600px}#wb-table td{font-size:13px;max-width:270px;overflow:hidden;text-overflow:ellipsis;cursor:pointer}#wb-table td:hover{box-shadow:inset 0 0 0 1px #18694d}#wb-table tr.header-row td{background:#e5f0e9;font-weight:600;text-align:center}#wb-table tr.total-row td{background:#e6f1eb;font-weight:700}#wb-table .row-number{position:sticky;left:0;background:#f4f7f5;z-index:1;min-width:42px;color:#61736a;text-align:right;cursor:default}#wb-table th.row-number{z-index:3}#wb-table td.blank{color:#a2aca7}#wb-table td.error{color:#ad3425;background:#fff2ef}#wb-table td.partial{color:#85501b}#wb-table .filtered-row{opacity:.58}#wb-table th{font-size:12px;white-space:normal;min-width:100px}#wb-table th:first-child{min-width:42px}
+#data-audit{margin-top:10px}#data-audit td{white-space:normal}#data-audit p{overflow-wrap:anywhere}.warning-box{padding:10px 14px;border-left:3px solid #c88a38;background:#fff8ed;margin:10px 0}.cell-location{font:13px monospace;overflow-wrap:anywhere;color:#125b46}.cell-formula{white-space:pre-wrap;overflow-wrap:anywhere;background:#f1f5f2;padding:10px;border-radius:5px;font-size:12px}#cell-inspector{width:min(760px,calc(100% - 24px))}#cell-detail p{overflow-wrap:anywhere}#pagination button[disabled]{opacity:.4;cursor:default}#metric-cards .card small{display:block;color:var(--muted)}
+button:disabled,input:disabled,select:disabled{opacity:.55;cursor:default}
+@media(max-width:640px){.mode{width:100%}.mode button{flex:1}.import-box #load-status{margin-left:0}.import-box input{max-width:100%}.view-heading{gap:5px}}
 </style>
 </head>
 <body>
-  <header class="top">
-    <div><span class="eyebrow">AMAZON · UNITED ARAB EMIRATES</span><h1>UAE Amazon ERP</h1></div>
-    <div class="badge">VC + Ads · 浏览器导入 · AED</div>
-  </header>
-  <main>+<section class="panel" id="import-panel">
-  <h2>导入 UAE ERP 快照</h2>
-  <p>请选择本机生成的 ERP index.html。文件由浏览器直接读取。</p>
-  <label>ERP 快照 <input id="erp-file" type="file" accept=".html,.htm"></label>
-  <p id="import-message" role="status"></p>
-</section>
-<script>
-const fileInput = document.querySelector("#erp-file");
-const importMessage = document.querySelector("#import-message");
-const fields = ["daily", "coverage", "stock", "quality"];
-const reports = ["campaign", "model", "targeting", "search_term"];
-fileInput.addEventListener("change", async () => {
-  const file = fileInput.files[0];
-  if (!file) return;
-  fileInput.disabled = true;
-  importMessage.textContent = "正在读取…";
-  try {
-    if (file.size > 100 * 1024 * 1024) throw Error("请选择小于 100 MB 的 ERP 快照。");
-    const text = await file.text();
-    const marker = '<script id="snapshot" type="application/json">';
-    const begin = text.indexOf(marker);
-    const finish = text.indexOf("<" + "/script>", begin + marker.length);
-    if (begin < 0 || finish < 0) throw Error("请选择 build.py 生成的 ERP index.html。");
-    const imported = JSON.parse(text.slice(begin + marker.length, finish));
-    const date = /^\d{4}-\d{2}-\d{2}$/;
-    if (!imported || !date.test(imported.start) || !date.test(imported.end)
-        || imported.start > imported.end || !fields.every(key => Array.isArray(imported[key]))
-        || !reports.every(key => Array.isArray(imported.ads?.[key]))) {
-      throw Error("快照格式不完整，请重新生成 ERP 文件。");
-    }
-    document.querySelector("#snapshot").textContent = JSON.stringify(imported);
-    const script = document.createElement("script");
-    script.textContent = document.querySelector("#erp-code").textContent;
-    document.body.append(script);
-    document.querySelector("#erp").hidden = false;
-    document.querySelector("#import-panel").remove();
-  } catch (error) {
-    importMessage.textContent = error.message;
-    fileInput.disabled = false;
-  }
-});
-</script>
+<header class="top"><div><span class="eyebrow">AMAZON · UNITED ARAB EMIRATES</span><h1>UAE Amazon ERP</h1><p>销售、流量、库存与退货</p></div><a class="toplink" href="ads.html">广告工作台 →</a></header>
+<main>
+  <section class="panel import-box"><div><h2>导入 VC 工作簿</h2><p class="hint">直接选择 UAE-VC .xlsx。文件仅在当前浏览器读取，刷新页面后需要重新导入。</p></div><label class="file-label">选择 Excel <input id="vc-file" type="file" accept=".xlsx"></label><p id="load-status" role="status">等待导入</p></section>
+  <div id="file-info" class="muted"></div>
+  <nav id="workbook-nav" aria-label="VC 工作表"></nav>
+  <section id="intro" class="panel"><h2>按你的 Excel 口径核对经营数据</h2><p>Summary 保留逐日倍率与配件排除规则；6 张透视表保留保存结果，并支持按原始数据重新筛选。点击表中单元格，可以查看公式、来源坐标和空白输入。</p><div class="intro-grid"><div><h3>销售</h3><p>经营日报、月度销量、每日型号与 ASIN 销量</p></div><div><h3>流量</h3><p>每日型号 GV、月度 ASIN GV</p></div><div><h3>库存与退货</h3><p>每日可售库存、按期间汇总的型号退货率</p></div></div></section>
+  <section id="work-area" hidden>
+    <section class="panel"><div class="view-heading"><div><h2 id="sheet-title"></h2><p id="sheet-description" class="hint"></p></div><div class="mode" role="group" aria-label="数据模式"><button id="saved-mode" type="button">Excel 保存结果</button><button id="computed-mode" type="button">按原始数据重算</button></div></div>
+      <form id="wb-filters" class="controls"><label>开始日期 <input id="wb-start" type="date" required></label><label>结束日期 <input id="wb-end" type="date" required></label><label>品类 <select id="wb-category"></select></label><label>型号 <select id="wb-model"></select></label><label>ASIN <select id="wb-asin"></select></label><button class="primary">应用筛选</button><button id="restore-filter" type="button">恢复原表条件</button></form>
+      <p id="scope-note" class="hint"></p>
+      <details id="logic-box"><summary>计算逻辑与 Excel 来源</summary><div id="logic-body"></div></details>
+    </section>
+    <div id="metric-cards" class="cards"></div>
+    <section class="panel"><div class="controls"><label>搜索当前表 <input id="table-search" type="search" placeholder="型号、ASIN、日期"></label><label id="hidden-label"><input id="include-hidden" type="checkbox"> 包含 Excel 隐藏行</label><button id="export-view" type="button">导出当前表 CSV</button></div><p id="table-status" class="hint"></p><div id="wb-table"></div><div id="pagination" class="controls"></div></section>
+    <details class="panel"><summary>数据覆盖与核对</summary><div id="data-audit"></div></details>
+  </section>
 </main>
-  <main id="erp" hidden>
-    <nav aria-label="模块">
-      <button data-view="daily" aria-current="page">经营日报</button>
-      <button data-view="ads">广告下钻</button>
-      <button data-view="stock">库存与目标</button>
-      <button data-view="actions">行动记录</button>
-    </nav>
-    <details class="coverage"><summary>来源覆盖与数据质量</summary><div id="coverage"></div></details>
-    <form id="period">
-      <label>开始日期 <input id="start" type="date" required></label>
-      <label>结束日期 <input id="end" type="date" required></label>
-      <button type="submit" class="primary">应用</button>
-      <button type="button" data-days="7">最近 7 天</button>
-      <button type="button" data-days="14">最近 14 天</button>
-      <button type="button" id="latest-ads">最近 7 天广告</button>
-      <p id="period-status" role="status"></p>
-    </form>
-    <section id="screen" aria-live="polite"></section>
-  </main>
-  <dialog id="action-dialog">
-    <form id="action-form">
-      <h2>记录投放调整</h2>
-      <p id="entity"></p>
-      <label>动作
-        <select name="change" required><option>保留</option><option>暂停</option><option>补入 ASIN</option><option>加价</option><option>降价</option><option>复查搜索词</option></select>
-      </label>
-      <div class="form-row"><label>实际当前 Bid <input name="oldBid" type="number" min="0" step=".01"></label>
-        <label>拟调整 Bid <input name="newBid" type="number" min="0" step=".01"></label></div>
-      <label>证据或说明 <textarea name="note" required rows="3"></textarea></label>
-      <div class="form-row"><button type="submit" class="primary">保存到本机</button><button type="button" id="cancel-action">取消</button></div>
-    </form>
-  </dialog>
-  <script id="snapshot" type="application/json">null</script>
-  <script id="erp-code" type="text/plain">"use strict";
-const data = JSON.parse(document.querySelector("#snapshot").textContent);
-const start = document.querySelector("#start");
-const end = document.querySelector("#end");
-const screen = document.querySelector("#screen");
-const status = document.querySelector("#period-status");
-const dialog = document.querySelector("#action-dialog");
-const form = document.querySelector("#action-form");
-const number = new Intl.NumberFormat("en-US", {maximumFractionDigits: 2});
-const labels = {sales:"VC 销售",traffic:"VC 流量",inventory:"VC 库存",campaign:"Campaign",model:"Ads 商品",targeting:"Targeting",search_term:"Search Term"};
-const cutoff = (kind) => data.coverage.find(r=>r.report_type===kind)?.max_date;
-const operatingEnd = [cutoff("sales"),cutoff("traffic"),cutoff("campaign")].every(Boolean)
-  ? [cutoff("sales"),cutoff("traffic"),cutoff("campaign")].sort()[0] : data.end;
-const storageKey = "uae-amazon-erp.actions.v1";
-const dayMs = 86400000;
-let view = "daily";
-let campaign = "";
-let group = "";
-let actionEntity;
-let planAsin = "";
-let planned = "";
-let actions = [];
-try { actions = JSON.parse(localStorage.getItem(storageKey) || "[]"); } catch {}
-if (!Array.isArray(actions)) actions = [];
-
-function element(tag, text, cls) {
-  const node = document.createElement(tag);
-  if (text !== undefined) node.textContent = text;
-  if (cls) node.className = cls;
-  return node;
-}
-const value = (x) => x == null ? "—" : typeof x === "number" ? number.format(x) : String(x);
-const pct = (x) => x == null ? "—" : number.format(x * 100) + "%";
-const div = (a,b) => a != null && b != null && b > 0 ? a / b : null;
-const shift = (d,n) => new Date(Date.parse(d) + n * dayMs).toISOString().slice(0,10);
-const within = (r,a=start.value,b=end.value) => r.date >= a && r.date <= b;
-const sum = (rows,key) => rows.length && rows.every(r => r[key] != null)
-  ? rows.reduce((n,r) => n + r[key],0) : null;
-const button = (label, run) => {
-  const b = element("button", label);
-  b.type = "button";
-  b.addEventListener("click", run);
-  return b;
-};
-
-function table(headers, rows, parent) {
-  if (!rows.length) {
-    parent.append(element("p","当前筛选没有可显示记录。","hint"));
-    return;
-  }
-  const wrap = element("div",undefined,"scroll");
-  const t = element("table");
-  const h = t.createTHead().insertRow();
-  for (const label of headers) {
-    const cell = element("th",label);
-    cell.scope = "col";
-    h.append(cell);
-  }
-  const body = t.createTBody();
-  for (const row of rows) {
-    const line = body.insertRow();
-    for (const item of row) {
-      const cell = line.insertCell();
-      if (item instanceof Node) cell.append(item);
-      else cell.textContent = value(item);
+<dialog id="cell-inspector"><h2>单元格核对</h2><div id="cell-detail"></div><button id="close-inspector" type="button">关闭</button></dialog>
+<script>/* Local, read-only OOXML reader. No network requests or spreadsheet macros. */
+(function (root) {
+  'use strict';
+  const NS='http://schemas.openxmlformats.org/spreadsheetml/2006/main';
+  const named=(node,name)=>Array.from(node.getElementsByTagNameNS(NS,name));
+  const direct=(node,name)=>Array.from(node.children).filter(x=>x.localName===name);
+  const one=(node,name)=>named(node,name)[0];
+  const text=(node)=>node?.textContent??'';
+  const col=(s)=>[...s].reduce((a,c)=>a*26+c.charCodeAt(0)-64,0);
+  const letters=(n)=>{let s='';for(;n;n=Math.floor((n-1)/26))s=String.fromCharCode(65+(n-1)%26)+s;return s;};
+  const addr=(s)=>{const m=/^([A-Z]+)(\d+)$/.exec(s);if(!m)throw Error('无效单元格地址');return [col(m[1]),+m[2]];};
+  const date=(n)=>typeof n==='number'&&n>=1&&n<100000?new Date(Date.UTC(1899,11,30)+n*86400000).toISOString().slice(0,10):null;
+  const path=(base,target)=>{const parts=(target.startsWith('/')?target.slice(1):base.slice(0,base.lastIndexOf('/')+1)+target).split('/');const out=[];for(const p of parts){if(p==='..')out.pop();else if(p!=='.')out.push(p);}return out.join('/');};
+  const xml=(s)=>{if(/<!DOCTYPE|<!ENTITY/i.test(s))throw Error('不支持带外部实体的文件');const d=new DOMParser().parseFromString(s,'application/xml');if(d.querySelector('parsererror'))throw Error('Excel XML 解析失败');return d;};
+  function translate(f,from,to){const [fc,fr]=addr(from),[tc,tr]=addr(to);return f.split(/("(?:[^"]|"")*")/g).map((p,i)=>i%2?p:p.replace(/(\$?)([A-Z]{1,3})(\$?)(\d+)\b/g,(m,a,c,b,r)=>a+letters(col(c)+(a?0:tc-fc))+b+(+r+(b?0:tr-fr)))).join('');}
+  async function unzip(bytes){
+    const a=new Uint8Array(bytes),v=new DataView(bytes);let e=-1;
+    for(let i=a.length-22;i>=Math.max(0,a.length-65557);i--)if(v.getUint32(i,true)===0x06054b50){e=i;break;}
+    if(e<0)throw Error('请选择标准 .xlsx 文件');
+    const count=v.getUint16(e+10,true);let pos=v.getUint32(e+16,true),total=0;const entries=new Map();
+    if(count>3000)throw Error('文件包含过多内部部件');
+    for(let i=0;i<count;i++){
+      if(v.getUint32(pos,true)!==0x02014b50)throw Error('Excel 压缩目录损坏');
+      const flag=v.getUint16(pos+8,true),method=v.getUint16(pos+10,true),size=v.getUint32(pos+20,true),outSize=v.getUint32(pos+24,true),nl=v.getUint16(pos+28,true),el=v.getUint16(pos+30,true),cl=v.getUint16(pos+32,true),offset=v.getUint32(pos+42,true);
+      const name=new TextDecoder().decode(a.slice(pos+46,pos+46+nl));total+=outSize;
+      if(flag&1)throw Error('请先在 Excel 中解除文件密码');if(total>400*1024*1024)throw Error('解压后的工作簿超过 400 MB');
+      entries.set(name,{method,size,outSize,offset});pos+=46+nl+el+cl;
     }
+    return {has:p=>entries.has(p),async read(p){
+      const r=entries.get(p);if(!r)throw Error('工作簿缺少 '+p);
+      const o=r.offset;if(v.getUint32(o,true)!==0x04034b50)throw Error('Excel 压缩文件损坏');
+      const begin=o+30+v.getUint16(o+26,true)+v.getUint16(o+28,true),buf=a.slice(begin,begin+r.size);
+      let result;if(r.method===0)result=buf;else if(r.method===8){let ds;try{ds=new DecompressionStream('deflate-raw');}catch{throw Error('浏览器版本过旧，请更新 Edge、Chrome 或 Opera。');}result=new Uint8Array(await new Response(new Blob([buf]).stream().pipeThrough(ds)).arrayBuffer());}else throw Error('不支持的 Excel 压缩方式');
+      if(result.length!==r.outSize)throw Error('Excel 解压大小校验失败');return new TextDecoder().decode(result);
+    }};
   }
-  wrap.append(t);
-  parent.append(wrap);
-}
-
-function panel(title, hint) {
-  const p = element("div",undefined,"panel");
-  p.append(element("h2",title));
-  if (hint) p.append(element("p",hint,"hint"));
-  screen.append(p);
-  return p;
-}
-
-function daily() {
-  const p = panel("经营日报", "VC 件数和收入显示已报告值，含空白记录的日期标为部分。广告花费来自 Campaign。归因购买/点击含不同广告类型，广告费/件只在同日销售件数完整时计算。");
-  const rows = data.daily.filter(r=>within(r));
-  const previous = rows.length ? data.daily.filter(r=>within(r,shift(start.value,-rows.length),shift(start.value,-1))) : [];
-  const cards = element("div",undefined,"cards");
-  for (const [key,name,blank] of [["units","VC 件数","unit_blanks"],["revenue","VC 收入 · AED","revenue_blanks"],["views","Featured Offer PV"],["spend","广告费用 · AED"],["purchases","归因购买"]]) {
-    const total = sum(rows,key);
-    const complete = !blank || rows.every(r=>r[blank]===0);
-    const prior = previous.length === rows.length && (!blank || previous.every(r=>r[blank]===0)) ? sum(previous,key) : null;
-    const c = element("div",undefined,"card");
-    c.append(element("span",name),element("strong",value(total)),
-      element("span", !complete && total != null ? "含部分数据" : "前等长周期 " + value(prior),"muted"));
-    cards.append(c);
-  }
-  p.append(cards);
-  table(["日期","GV","VC 件数","件数 / GV","VC 收入 AED","广告展示","广告点击","CTR","广告费 AED","CPC","归因购买","归因销售 AED","ACOS","ROAS","归因购买 / 点击","广告费 / VC 收入","广告费 / 件 AED","单件收入 AED","归因购买 / VC 件数"],
-    rows.map(r=>[r.date,r.views,r.unit_blanks && r.units != null ? value(r.units)+"（部分）" : r.units,
-      pct(r.unit_blanks===0?div(r.units,r.views):null),
-      r.revenue_blanks && r.revenue != null ? value(r.revenue)+"（部分）" : r.revenue,
-      r.impressions,r.clicks,pct(div(r.clicks,r.impressions)),r.spend,div(r.spend,r.clicks),r.purchases,
-      r.ad_sales,pct(div(r.spend,r.ad_sales)),div(r.ad_sales,r.spend),pct(div(r.purchases,r.clicks)),
-      pct(r.revenue_blanks===0?div(r.spend,r.revenue):null),r.unit_blanks===0?div(r.spend,r.units):null,
-      r.unit_blanks===0&&r.revenue_blanks===0?div(r.revenue,r.units):null,
-      pct(r.unit_blanks===0?div(r.purchases,r.units):null)]),p);
-}
-
-function aggregate(rows, key) {
-  const groups = new Map();
-  const metrics = ["spend","clicks","purchases","ad_sales"];
-  for (const row of rows) {
-    const id = key(row);
-    if (!groups.has(id)) groups.set(id, {...row, items:[]});
-    const group = groups.get(id);
-    if (row.date >= group.date) Object.assign(group,row);
-    group.items.push(row);
-  }
-  return [...groups.values()].map(row=>{
-    for (const key of metrics) row[key]=sum(row.items,key);
-    return row;
-  }).sort((a,b)=>(b.spend??-1)-(a.spend??-1));
-}
-
-function choose(label, options, current, change) {
-  const node = element("label",label+" ");
-  const control = element("select");
-  for (const [id,name] of options) {
-    const opt = element("option",name);
-    opt.value=id;
-    control.append(opt);
-  }
-  control.value = current;
-  control.addEventListener("change",()=>change(control.value));
-  node.append(control);
-  return node;
-}
-
-function noteEntity(kind,row) {
-  actionEntity = {kind, campaign:row.campaign_id, group:row.ad_group_id??null,
-    entity:row.asin ?? row.target_id, label:row.label??row.asin??row.target_id,
-    start:start.value,end:end.value, spend:row.spend, purchases:row.purchases};
-  form.reset();
-  document.querySelector("#entity").textContent = [actionEntity.label, actionEntity.campaign, actionEntity.group, actionEntity.entity].filter(Boolean).join(" / ");
-  dialog.showModal();
-}
-
-function ads() {
-  const p = panel("广告下钻", "选 Campaign 和 Ad Group 后，按 Ads 商品、Targeting、Search Term 顺序看。各报表分别汇总。Bid 与状态以后台或最新配置为准。");
-  const cr = aggregate(data.ads.campaign.filter(r=>within(r)),r=>r.campaign_id);
-  if (!cr.some(r=>r.campaign_id===campaign)) campaign=cr[0]?.campaign_id??"";
-  const controls=element("div",undefined,"controls");
-  controls.append(choose("Campaign", cr.map(r=>[r.campaign_id,(r.campaign_name??r.campaign_id)+" · "+value(r.spend)+" AED"]),campaign,
-    id=>{campaign=id;group="";render();}));
-  const gr = new Map();
-  for (const kind of ["model","targeting","search_term"]) {
-    for (const r of data.ads[kind]) {
-      if (r.campaign_id===campaign && r.ad_group_id && within(r)) gr.set(r.ad_group_id,r.ad_group_name??r.ad_group_id);
+  function parseSheet(doc,strings,styles,formats){
+    const cells={},rows=[],shared=new Map();
+    for(const row of named(doc,'row')){
+      const r={n:+row.getAttribute('r'),hidden:row.getAttribute('hidden')==='1',cells:[]};
+      for(const c of direct(row,'c')){
+        const id=c.getAttribute('r'),t=c.getAttribute('t')||'n',s=+c.getAttribute('s')||0,f=one(c,'f'),vs=one(c,'v');let value=null;
+        if(t==='s'&&vs)value=strings[+vs.textContent]??null;
+        else if(t==='inlineStr')value=named(c,'t').map(text).join('');
+        else if(vs&&vs.textContent!=='')value=t==='n'?Number(vs.textContent):t==='b'?vs.textContent==='1':vs.textContent;
+        if(typeof value==='number'&&!Number.isFinite(value))value=null;
+        if(value===null&&!f)continue;
+        const cell={v:value,t,s};
+        if(f){cell.f=f.textContent||'';const si=f.getAttribute('si');if(si!==null){if(cell.f)shared.set(si,{f:cell.f,id});else {const b=shared.get(si);cell.f=b?translate(b.f,b.id,id):'共享公式（基准缺失）';}}}
+        cells[id]=cell;r.cells.push(id);
+      }
+      if(r.cells.length)rows.push(r);
     }
+    return {cells,rows,dimension:one(doc,'dimension')?.getAttribute('ref')??'',merges:named(doc,'mergeCell').map(x=>x.getAttribute('ref')),filter:one(doc,'autoFilter')?.outerHTML??null,styles,formats};
   }
-  if (!gr.has(group)) group=gr.keys().next().value??"";
-  controls.append(choose("Ad Group",[...gr],group,id=>{group=id;render();}));
-  p.append(controls);
-  const selected = cr.find(r=>r.campaign_id===campaign);
-  if (selected) p.append(element("p", `${selected.ad_product} · Campaign ID ${campaign} · Ad Group ID ${group||"—"} · Campaign 花费 ${value(selected.spend)} AED`, "hint"));
-  for (const kind of ["model","targeting","search_term"]) {
-    const last = data.coverage.find(r=>r.report_type===kind)?.max_date;
-    const rows = aggregate(data.ads[kind].filter(r=>r.campaign_id===campaign&&r.ad_group_id===group&&within(r)),
-      r=>JSON.stringify([r.asin,r.target_id,r.match,kind==="search_term"?r.label:null]));
-    p.append(element("h3",labels[kind],"grid-title"));
-    p.append(element("p",`该报表截至 ${last??"—"}${last&&last<end.value?"，所选期间仅有部分覆盖。":"。"}`,"hint"));
-    const headers=["商品 / 定向 / 查询","ASIN / Target ID","Match","花费 AED","点击","归因购买","CPC","ROAS"];
-    const cells=rows.map(r=>[r.label,r.asin??r.target_id,r.match,r.spend,r.clicks,r.purchases,div(r.spend,r.clicks),div(r.ad_sales,r.spend)]);
-    if (kind!=="search_term") {
-      headers.push("行动");
-      cells.forEach((r,i)=>r.push(button("记录",()=>noteEntity(kind,rows[i]))));
+  function relationships(doc,base){return new Map(Array.from(doc.documentElement.children).map(r=>[r.getAttribute('Id'),path(base,r.getAttribute('Target'))]));}
+  function sourceRows(sheet,name,required){
+    const h=sheet.rows[0];if(!h)throw Error(name+' 没有表头');const keys=new Map();
+    for(const a of h.cells){const val=sheet.cells[a].v;if(required.includes(val)){if(keys.has(val))throw Error(name+' 存在重复表头 '+val);keys.set(val,addr(a)[0]);}}
+    for(const k of required)if(!keys.has(k))throw Error(name+' 缺少字段 '+k+'，请检查工作簿版本');
+    return sheet.rows.slice(1).map(r=>{const o={row:r.n};for(const [key,c]of keys)o[key]=sheet.cells[letters(c)+r.n]?.v??null;return o;});
+  }
+  async function load(file,progress=()=>{}){
+    if(file.size>100*1024*1024)throw Error('请选择小于 100 MB 的 .xlsx');
+    progress('读取 Excel 压缩目录…');const z=await unzip(await file.arrayBuffer()),work=xml(await z.read('xl/workbook.xml')),rels=relationships(xml(await z.read('xl/_rels/workbook.xml.rels')),'xl/workbook.xml');
+    if(one(work,'workbookPr')?.getAttribute('date1904')==='1')throw Error('此版本尚不支持 1904 日期系统');
+    const catalog=new Map(named(work,'sheet').map(s=>[s.getAttribute('name'),rels.get(s.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','id'))]));
+    const targets=['Summary','Monthly Sale','Sales','Inventory','Traffic','Monthly-Traffic','Return Rate','Sales Data','Traffic Data','inventory sourcing-2 0','Daily Ad'];
+    for(const s of targets)if(!catalog.has(s))throw Error('缺少工作表 '+s+'，请选择 UAE-VC 工作簿');
+    const strings=z.has('xl/sharedStrings.xml')?named(xml(await z.read('xl/sharedStrings.xml')),'si').map(si=>named(si,'t').map(text).join('')):[];
+    const st=xml(await z.read('xl/styles.xml')),formats={};for(const x of named(st,'numFmt'))formats[x.getAttribute('numFmtId')]=x.getAttribute('formatCode');
+    const styles=direct(one(st,'cellXfs'),'xf').map(x=>+x.getAttribute('numFmtId'));
+    const sheets={};for(const name of targets){progress('解析 '+name+'…');sheets[name]=parseSheet(xml(await z.read(catalog.get(name))),strings,styles,formats);await new Promise(r=>setTimeout(r,0));}
+    const pivotCaches=new Map();for(const c of named(work,'pivotCache'))pivotCaches.set(c.getAttribute('cacheId'),rels.get(c.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','id')));
+    const cacheDocs=new Map(),pivots={};
+    for(const name of targets.slice(0,7)){
+      const sp=catalog.get(name),rp=sp.slice(0,sp.lastIndexOf('/')+1)+'_rels/'+sp.slice(sp.lastIndexOf('/')+1)+'.rels';if(!z.has(rp))continue;
+      const rs=relationships(xml(await z.read(rp)),sp),pp=[...rs.values()].find(p=>p.includes('/pivotTables/'));if(!pp)continue;
+      const pd=xml(await z.read(pp)),cp=pivotCaches.get(pd.documentElement.getAttribute('cacheId'));if(!cp)continue;
+      if(!cacheDocs.has(cp))cacheDocs.set(cp,xml(await z.read(cp)));const cd=cacheDocs.get(cp),fields=direct(one(cd,'cacheFields'),'cacheField');
+      const field=i=>fields[+i]?.getAttribute('name')??i;
+      const filters=[];direct(one(pd,'pivotFields'),'pivotField').forEach((f,i)=>{const it=one(f,'items');if(it&&direct(it,'item').some(x=>x.getAttribute('h')==='1')){const si=one(fields[i],'sharedItems');filters.push({field:field(i),values:direct(it,'item').filter(x=>x.getAttribute('h')!=='1'&&x.hasAttribute('x')).map(x=>si?.children[+x.getAttribute('x')]?.getAttribute('v')??null)});}});
+      const dateFilters=named(pd,'customFilter');const d={};for(const f of dateFilters){if(f.getAttribute('operator')==='greaterThanOrEqual')d.start=date(+f.getAttribute('val'));if(f.getAttribute('operator')==='lessThanOrEqual')d.end=date(+f.getAttribute('val'));}
+      const list=tag=>{const el=one(pd,tag);return el?direct(el,'field').map(f=>field(f.getAttribute('x'))):[];};
+      pivots[name]={rows:list('rowFields'),columns:list('colFields'),measures:named(pd,'dataField').map(x=>({name:field(x.getAttribute('fld')),aggregate:x.getAttribute('subtotal')||'sum'})),filters,dates:d,cacheRecords:+cd.documentElement.getAttribute('recordCount'),source:one(cd,'worksheetSource')?.getAttribute('sheet'),calculated:fields.filter(x=>x.hasAttribute('formula')).map(x=>({name:x.getAttribute('name'),formula:x.getAttribute('formula')}))};
     }
-    table(headers,cells,p);
+    const sales=sourceRows(sheets['Sales Data'],'Sales Data',['Date','ASIN','Model','ZM-Category','Ordered Revenue','Ordered Units','Customer Returns']);
+    const traffic=sourceRows(sheets['Traffic Data'],'Traffic Data',['Date','ASIN','Model','ZM-Category','Glance Views']);
+    const inventory=sourceRows(sheets['inventory sourcing-2 0'],'inventory sourcing-2 0',['Date','ASIN','Model','Category','Sellable On Hand Units']);
+    const ads=sourceRows(sheets['Daily Ad'],'Daily Ad',['Date','Portfolio','Impressions','Clicks','Spend(AED)','Orders','Sales(AED)']);
+    const rows=(a,fields)=>a.map(r=>{const o={row:r.row,date:date(r.Date),asin:r.ASIN,model:r.Model,category:r['ZM-Category']??r.Category};for(const [a,b]of Object.entries(fields))o[a]=r[b];return o;}).filter(r=>r.date);
+    const raw={sales:rows(sales,{units:'Ordered Units',revenue:'Ordered Revenue',returns:'Customer Returns'}),traffic:rows(traffic,{views:'Glance Views'}),inventory:rows(inventory,{stock:'Sellable On Hand Units'}),ads:rows(ads,{portfolio:'Portfolio',impressions:'Impressions',clicks:'Clicks',spend:'Spend(AED)',orders:'Orders',adSales:'Sales(AED)'})};
+    const coverage=Object.entries(raw).map(([kind,rows])=>{const ds=rows.map(r=>r.date).sort();const seen=new Set();let duplicates=0;for(const r of rows){const k=JSON.stringify([r.date,r.asin??r.portfolio]);if(seen.has(k))duplicates++;seen.add(k);}return {kind,count:rows.length,start:ds[0],end:ds.at(-1),duplicates};});
+    const ruleWarnings=[];const norm=f=>(f??'').replace(/\s|\$/g,'').replace(/([A-Z]+)\d+/g,'$1#');
+    const ratios={D:'IF(B#=0,0,IF(C#/B#>0,C#/B#,0))',H:'IFERROR(G#/F#,0)',J:'IFERROR(I#/G#,0)',M:'IFERROR(I#/L#,0)',N:'IFERROR(L#/I#,0)',O:'IFERROR(K#/G#,0)',P:'IFERROR(I#/E#,0)',Q:'IFERROR(I#/C#,0)',R:'IFERROR(E#/C#,0)',S:'IFERROR(K#/C#,0)'};
+    for(const row of sheets.Summary.rows){if(!date(sheets.Summary.cells['A'+row.n]?.v))continue;const at=c=>sheets.Summary.cells[c+row.n]?.f??'';
+      for(const [c,expected]of Object.entries(ratios))if(norm(at(c))!==expected&&ruleWarnings.length<8)ruleWarnings.push(`Summary!${c}${row.n} 的比率公式与已核对规则不同`);
+      const refs={B:["'TrafficData'!C:C","'TrafficData'!I:I"],C:["'SalesData'!Y:Y","'SalesData'!C:C","'SalesData'!AL:AL",'<>RobotCleanerAccessory','<>WetDryVacuumAccessory'],E:["'SalesData'!C:C","'SalesData'!X:X"],F:["'DailyAd'!J:J"],G:["'DailyAd'!K:K"],I:["'DailyAd'!M:M",'*0.272'],K:["'DailyAd'!O:O"],L:["'DailyAd'!P:P",'*0.272']};
+      for(const [c,parts]of Object.entries(refs))if(!parts.every(p=>norm(at(c)).includes(p))&&ruleWarnings.length<8)ruleWarnings.push(`Summary!${c}${row.n} 的来源或系数与已核对规则不同`);
+      const factors=[...at('E').matchAll(/\*\s*(\d+(?:\.\d+)?)/g)].map(m=>+m[1]);if((!factors.length||factors[0]!==.272)&&ruleWarnings.length<8)ruleWarnings.push(`Summary!E${row.n} 的货币换算需要复核`);
+    }
+    progress('导入完成');return {file:file.name,importedAt:new Date().toISOString(),sheets,raw,pivots,coverage,ruleWarnings};
   }
-}
-
-function stock() {
-  const p=panel("库存与目标","使用最新单日 Amazon 可售快照。覆盖天数需有连续 7 天该 ASIN 的已报告件数。活动缺口按你填写的剩余销量目标计算，适用于库存快照与目标时点一致的场景。");
-  const controls=element("div",undefined,"controls");
-  const opt=[["","选择 ASIN"],...data.stock.map(r=>[r.asin,`${r.asin} · ${r.model??"未映射"}`])];
-  const result=element("p","","hint");
-  const target=element("input");
-  target.type="number";
-  target.min="0";
-  target.step="1";
-  target.value=planned;
-  const label=element("label","剩余目标件数 ");
-  label.append(target);
-  function calculate() {
-    const r=data.stock.find(x=>x.asin===planAsin);
-    const v=Number(planned);
-    result.textContent=r?.available!=null&&planned!==""&&Number.isInteger(v)&&v>=0
-      ? `可售 ${value(r.available)} 件 · 现货缺口 ${value(Math.max(0,v-r.available))} 件`
-      : "请选择 ASIN 并输入剩余目标件数。";
-  }
-  controls.append(choose("ASIN",opt,planAsin,id=>{planAsin=id;calculate();}),label);
-  target.addEventListener("input",()=>{planned=target.value;calculate();});
-  calculate();
-  p.append(controls,result);
-  table(["ASIN","型号","库存日期","可售件数","过去 7 天件数","库存覆盖天数"],data.stock.map(r=>[r.asin,r.model,r.date,r.available,r.units7,div(r.available,r.units7==null?null:r.units7/7)]),p);
-}
-
-function storeActions() {
-  try { localStorage.setItem(storageKey,JSON.stringify(actions));return true; }
-  catch { return false; }
-}
-
-function actionView() {
-  const p=panel("行动记录","记录为本机浏览器草稿。完成后台操作后手工标记执行，建议导出备份。");
-  p.append(button("导出 JSON",()=>{
-    const url=URL.createObjectURL(new Blob([JSON.stringify(actions,null,2)],{type:"application/json"}));
-    const link=element("a");
-    link.href=url;link.download="uae-ad-actions.json";link.click();
-    setTimeout(()=>URL.revokeObjectURL(url),1000);
-  }));
-  table(["商品 / Target","Campaign / Group / ID","动作","当前 Bid","拟调价","证据期","备注","状态"],actions.map(r=>[
-    r.label,[r.campaign,r.group,r.entity].filter(Boolean).join(" / "),r.change,r.oldBid??null,r.newBid??null,
-    `${r.start}–${r.end}`,r.note,r.executed??button("标记已执行",()=>{
-      r.executed=new Date().toISOString();
-      if (!storeActions()) status.textContent="浏览器拒绝持久化，建议导出记录。";
-      render();
-    })
-  ]),p);
-}
-
-function render() {
-  screen.replaceChildren();
-  document.querySelectorAll("nav button").forEach(b=>{
-    if(b.dataset.view===view)b.setAttribute("aria-current","page");
-    else b.removeAttribute("aria-current");
-  });
-  ({daily,ads,stock,actions:actionView})[view]();
-}
-
-document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()=>{view=b.dataset.view;render();}));
-document.querySelector("#period").addEventListener("submit",event=>{
-  event.preventDefault();
-  if (start.value > end.value) { status.textContent="开始日期不能晚于结束日期。";return; }
-  status.textContent="";
-  render();
-});
-document.querySelectorAll("[data-days]").forEach(b=>b.addEventListener("click",()=>{
-  end.value=operatingEnd;
-  start.value=[data.start,shift(operatingEnd,1-Number(b.dataset.days))].sort().at(-1);
-  status.textContent="";
-  render();
-}));
-document.querySelector("#latest-ads").addEventListener("click",()=>{
-  end.value=cutoff("campaign")??data.end;
-  start.value=[data.start,shift(end.value,-6)].sort().at(-1);
-  status.textContent="";
-  view="ads";
-  render();
-});
-document.querySelector("#cancel-action").addEventListener("click",()=>dialog.close());
-form.addEventListener("submit",event=>{
-  event.preventDefault();
-  const fields=new FormData(form);
-  const change=fields.get("change");
-  const oldBid=fields.get("oldBid")===""?null:Number(fields.get("oldBid"));
-  const newBid=fields.get("newBid")===""?null:Number(fields.get("newBid"));
-  if (["加价","降价"].includes(change) && (oldBid===null||newBid===null||
-      (change==="加价"?newBid<=oldBid:newBid>=oldBid))) {
-    alert("请填写当前 Bid 和符合动作方向的拟调 Bid。");return;
-  }
-  actions.unshift({...actionEntity,change,oldBid,newBid,note:fields.get("note"),created:new Date().toISOString()});
-  status.textContent=storeActions()?"已保存行动草稿。":"浏览器拒绝持久化，建议导出记录。";
-  dialog.close();
-});
-start.min=end.min=data.start;
-start.max=end.max=data.end;
-start.value=[data.start,shift(operatingEnd,-6)].sort().at(-1);
-end.value=operatingEnd;
-const coverage=document.querySelector("#coverage");
-table(["来源","已接受起始日","已接受截止日"],data.coverage.map(r=>[labels[r.report_type]??r.report_type,r.min_date,r.max_date]),coverage);
-if(data.quality.length) coverage.append(element("p","历史广告导入异常："+data.quality.map(r=>`${r.report_type} ${r.status} ×${r.count}`).join("，"),"hint"));
-render();
+  root.UaeXlsx={load,date,addr,letters,translate};
+})(typeof window==='undefined'?globalThis:window);
 </script>
-</body>
-</html>
-
+<script>(function(root){
+  'use strict';
+  const isNum=x=>typeof x==='number'&&Number.isFinite(x);
+  const ratio=(a,b)=>isNum(a)&&isNum(b)&&b!==0?a/b:null;
+  const source={sales:['Sales Data',{units:'Y',revenue:'X',returns:'AC'}],traffic:['Traffic Data',{views:'I'}],inventory:['inventory sourcing-2 0',{stock:'F'}],ads:['Daily Ad',{impressions:'J',clicks:'K',spend:'M',orders:'O',adSales:'P'}]};
+  const cell=(v,extra={})=>({v,...extra});
+  function total(rows,key){const ns=rows.filter(r=>isNum(r[key]));return {v:ns.length?ns.reduce((a,r)=>a+r[key],0):null,blanks:rows.length-ns.length,n:rows.length};}
+  function measure(rows,kind,key){const t=total(rows,key),[sheet,cols]=source[kind];return cell(t.v,{...t,formula:`SUM('${sheet}'!${cols[key]}:${cols[key]})（当前筛选）`,source:rows.slice(0,12).map(r=>`${sheet}!${cols[key]}${r.row}`)});}
+  function formula(v,f,...inputs){return cell(v,{formula:f,blanks:inputs.reduce((s,c)=>s+(c.blanks||0),0),source:inputs.flatMap(c=>c.source??[]).slice(0,16)});}
+  function selected(raw,state){return raw.filter(r=>r.date>=state.start&&r.date<=state.end&&(!state.category||r.category===state.category)&&(!state.model||r.model===state.model)&&(!state.asin||r.asin===state.asin));}
+  function sumCells(cells){const n=cells.filter(c=>isNum(c.v));return cell(n.length?n.reduce((a,c)=>a+c.v,0):null,{blanks:cells.reduce((a,c)=>a+(c.blanks||0)+(c.v==null&&!c.blanks?1:0),0),formula:'SUM（所列记录）',source:cells.flatMap(c=>c.source??[]).slice(0,12)});}
+  const normal=r=>[r.category??'未映射',r.model??'未映射',r.asin??'未映射'];
+  function factorMap(wb){const s=wb.sheets.Summary,map=new Map();let last={fx:.272,salesFactor:1};for(const r of s.rows){const d=root.UaeXlsx.date(s.cells['A'+r.n]?.v);if(!d)continue;const f=s.cells['E'+r.n]?.f;const ms=f?[...f.matchAll(/\*\s*(\d+(?:\.\d+)?)/g)].map(m=>+m[1]):[];if(ms.length)last={fx:ms[0],salesFactor:ms.slice(1).reduce((a,b)=>a*b,1)};map.set(d,last);}return {map,last};}
+  function summary(wb,state){
+    const raw=wb.raw,fp=factorMap(wb),maps={};for(const[k,list]of Object.entries(raw)){maps[k]=new Map();for(const r of list){if(!maps[k].has(r.date))maps[k].set(r.date,[]);maps[k].get(r.date).push(r);}}
+    const ds=[...new Set(['sales','traffic','ads'].flatMap(k=>[...maps[k].keys()]))].filter(d=>d>=state.start&&d<=state.end).sort();
+    const totals={views:[],units:[],sales:[],impressions:[],clicks:[],cost:[],orders:[],adSales:[]};
+    const rows=ds.map(d=>{
+      const sales=maps.sales.get(d)??[],t=maps.traffic.get(d)??[],a=maps.ads.get(d)??[],f=fp.map.get(d)??fp.last;
+      const u=measure(sales.filter(r=>!['Robot Cleaner Accessory','Wet Dry Vacuum Accessory'].includes(r.category)),'sales','units'),v=measure(t,'traffic','views'),rev=measure(sales,'sales','revenue');
+      const sr=formula(isNum(rev.v)?rev.v*f.fx*f.salesFactor:null,`Sales Data!X 按日期求和 × ${f.fx} × ${f.salesFactor}（原表日期倍率）`,rev);
+      const imp=measure(a,'ads','impressions'),clicks=measure(a,'ads','clicks'),sp=measure(a,'ads','spend'),cost=formula(isNum(sp.v)?sp.v*f.fx:null,`Daily Ad!M 按日期求和 × ${f.fx}`,sp),orders=measure(a,'ads','orders'),ad=measure(a,'ads','adSales'),adSales=formula(isNum(ad.v)?ad.v*f.fx:null,`Daily Ad!P 按日期求和 × ${f.fx}`,ad);
+      for(const[k,c]of Object.entries({views:v,units:u,sales:sr,impressions:imp,clicks,cost,orders,adSales}))totals[k].push(c);
+      const mk=(a,b,f,p=false)=>formula(ratio(a.v,b.v),f,a,b);
+      const cells=[cell(d),v,u,mk(u,v,'销售件数 / GV'),sr,imp,clicks,mk(clicks,imp,'点击 / 展示'),cost,mk(cost,clicks,'广告费用 USD / 点击'),orders,adSales,mk(cost,adSales,'广告费用 USD / 广告销售 USD'),mk(adSales,cost,'广告销售 USD / 广告费用 USD'),mk(orders,clicks,'归因订单 / 点击'),mk(cost,sr,'广告费用 USD / Excel销售额 USD'),mk(cost,u,'广告费用 USD / 排除两类配件后的销售件数'),mk(sr,u,'Excel销售额 USD / 排除两类配件后的销售件数'),mk(orders,u,'归因订单 / 销售件数'),cell(wb.sheets.Summary.cells['T'+wb.sheets.Summary.rows.find(r=>root.UaeXlsx.date(wb.sheets.Summary.cells['A'+r.n]?.v)===d)?.n]?.v??null)];
+      return {cells};
+    });
+    const t=Object.fromEntries(Object.entries(totals).map(([k,v])=>[k,sumCells(v)]));const div=(a,b,f)=>formula(ratio(t[a].v,t[b].v),f,t[a],t[b]);
+    if(rows.length)rows.push({total:true,cells:[cell('所选期间合计'),t.views,t.units,div('units','views','总件数 / 总 GV'),t.sales,t.impressions,t.clicks,div('clicks','impressions','总点击 / 总展示'),t.cost,div('cost','clicks','总费用 / 总点击'),t.orders,t.adSales,div('cost','adSales','总费用 / 总归因销售'),div('adSales','cost','总归因销售 / 总费用'),div('orders','clicks','总归因订单 / 总点击'),div('cost','sales','总费用 / 总Excel销售额'),div('cost','units','总费用 / 总销售件数'),div('sales','units','总Excel销售额 / 总销售件数'),div('orders','units','总归因订单 / 总件数'),cell(null)]});
+    return {headers:['日期','GV','销售件数（原 Orders）','销售 CVR','Sales USD','广告展示','广告点击','广告 CTR','广告费 USD','CPC USD','归因订单','归因销售 USD','ACOS','ROAS','广告 CVR','费用率','CPO（费用/件）USD','单件收入 USD','广告订单占比','Note'],rows,percent:[3,7,12,14,15,18],money:[4,8,9,11,16,17],kind:'summary'};
+  }
+  function matrix(wb,state,kind,mode){
+    const data=selected(wb.raw[kind],state),monthly=mode==='monthly',inventory=kind==='inventory',key=kind==='sales'?'units':inventory?'stock':'views';
+    const periods=[...new Set(data.map(r=>monthly?r.date.slice(0,7):r.date))].sort(),groups=new Map();
+    for(const r of data){const g=normal(r),id=JSON.stringify(g);if(!groups.has(id))groups.set(id,{g,by:new Map()});const m=groups.get(id).by,p=monthly?r.date.slice(0,7):r.date;if(!m.has(p))m.set(p,[]);m.get(p).push(r);}
+    let rows=[...groups.values()].sort((a,b)=>a.g.join().localeCompare(b.g.join())).map(g=>{const cs=periods.map(p=>measure(g.by.get(p)??[],kind,key));return {cells:[...g.g.map(x=>cell(x)),...cs,...(inventory?[]:[sumCells(cs)])]};});
+    if(rows.length)rows.push({total:true,cells:[cell('合计'),cell(null),cell(null),...periods.map((p,i)=>sumCells(rows.map(r=>r.cells[i+3]))),...(inventory?[]:[sumCells(rows.map(r=>r.cells.at(-1)))]) ]});
+    return {headers:['品类','型号','ASIN',...periods,...(inventory?[]:['合计'])],rows,kind,periods,recordCount:data.length};
+  }
+  function dailyMatrix(wb,state,kind){
+    const data=selected(wb.raw[kind],state),key=kind==='sales'?'units':'views',sales=kind==='sales',groups=new Map(),byDate=new Map();
+    for(const r of data){const label=sales?`${r.model??'未映射'} · ${r.asin??'未映射'}`:r.model??'未映射';groups.set(label,label);if(!byDate.has(r.date))byDate.set(r.date,new Map());const m=byDate.get(r.date);if(!m.has(label))m.set(label,[]);m.get(label).push(r);}
+    const columns=[...groups.keys()].sort();let rows=[...byDate.keys()].sort().map(date=>{const cs=columns.map(c=>measure(byDate.get(date).get(c)??[],kind,key));return {cells:[cell(date),...cs,sumCells(cs)]};});
+    if(rows.length)rows.push({total:true,cells:[cell('合计'),...columns.map((c,i)=>sumCells(rows.map(r=>r.cells[i+1]))),sumCells(rows.map(r=>r.cells.at(-1)))]});
+    return {headers:['日期',...columns,'合计'],rows,kind,recordCount:data.length};
+  }
+  function returns(wb,state){const data=selected(wb.raw.sales,state),groups=new Map();for(const r of data){const k=JSON.stringify([r.category,r.model]);if(!groups.has(k))groups.set(k,[]);groups.get(k).push(r);}
+    const make=(list,label)=>{const u=measure(list,'sales','units'),r=measure(list,'sales','returns');return {cells:[cell(label[0]),cell(label[1]),u,r,formula(ratio(r.v,u.v),'SUM(Customer Returns) / SUM(Ordered Units)',r,u)]};};
+    const rows=[...groups].sort((a,b)=>a[0].localeCompare(b[0])).map(([k,g])=>make(g,JSON.parse(k)));if(rows.length)rows.push({...make(data,['合计',null]),total:true});
+    return {headers:['品类','型号','销售件数','退货件数','退货率'],rows,percent:[4],kind:'returns',recordCount:data.length};}
+  function calculate(wb,name,state){if(name==='Summary')return summary(wb,state);if(name==='Return Rate')return returns(wb,state);if(name==='Monthly Sale')return matrix(wb,state,'sales','monthly');if(name==='Monthly-Traffic')return matrix(wb,state,'traffic','monthly');if(name==='Inventory')return matrix(wb,state,'inventory','daily');return dailyMatrix(wb,state,name==='Sales'?'sales':'traffic');}
+  root.UaeWorkbookCore={calculate,total,ratio,selected,factorMap,isNum};
+})(typeof window==='undefined'?globalThis:window);
+</script>
+<script>(function(){
+  'use strict';
+  const $=s=>document.querySelector(s),C=UaeWorkbookCore,X=UaeXlsx;
+  const names=['Summary','Monthly Sale','Sales','Inventory','Traffic','Monthly-Traffic','Return Rate'];
+  const descriptions={Summary:'经营日报：流量、销售、广告与费用效率。原表 Orders 实际引用 Ordered Units。', 'Monthly Sale':'按品类、型号、ASIN 汇总每月销售件数。',Sales:'按日期查看型号与 ASIN 的销售件数。',Inventory:'按日期查看品类、型号、ASIN 的可售库存。库存是时点值，不跨日期相加。',Traffic:'按日期汇总每个型号的 Glance Views；同型号的 ASIN 合并。','Monthly-Traffic':'按品类、型号、ASIN 汇总每月 Glance Views。','Return Rate':'按品类、型号汇总期间退货件数与销售件数，再计算比率。'};
+  let wb,active='Summary',mode='saved',states={},page=0,view,hash='';const pageSize=50;
+  const nf=new Intl.NumberFormat('en-US',{maximumFractionDigits:2}),intf=new Intl.NumberFormat('en-US',{maximumFractionDigits:0});
+  const el=(tag,t,cls)=>{const n=document.createElement(tag);if(t!==undefined)n.textContent=t;if(cls)n.className=cls;return n;};
+  const empty=v=>v==null||v==='';const fmt=(v,p=false)=>empty(v)?'—':typeof v==='number'?p?nf.format(v*100)+'%':nf.format(v):String(v);
+  const button=(t,fn,disabled=false)=>{const b=el('button',t);b.type='button';b.disabled=disabled;b.addEventListener('click',fn);return b;};
+  const select=(node,values,current)=>{node.replaceChildren();for(const v of ['',...values]){const o=el('option',v||'全部');o.value=v;node.append(o);}node.value=values.includes(current)?current:'';};
+  const kind=()=>['Summary','Return Rate','Monthly Sale','Sales'].includes(active)?'sales':active==='Inventory'?'inventory':'traffic';
+  function savedDefaults(name){const p=wb.pivots[name],raw=wb.raw[['Monthly Sale','Sales','Return Rate'].includes(name)?'sales':name==='Inventory'?'inventory':'traffic'];let dates=p?.dates;
+    if(name==='Summary'){const s=wb.sheets.Summary,ds=s.rows.filter(r=>!r.hidden).map(r=>X.date(s.cells['A'+r.n]?.v)).filter(Boolean).sort();dates={start:ds[0],end:ds.at(-1)};}
+    const ds=raw.map(r=>r.date).sort(),cat=p?.filters.find(f=>['ZM-Category','Category'].includes(f.field))?.values;
+    return {start:dates?.start??ds[0],end:dates?.end??ds.at(-1),category:cat?.length===1?cat[0]:'',model:'',asin:''};
+  }
+  function controls(){const st=states[active];$('#wb-start').value=st.start??'';$('#wb-end').value=st.end??'';const raw=wb.raw[kind()];const unique=(key,filter=()=>true)=>[...new Set(raw.filter(filter).map(r=>r[key]).filter(v=>!empty(v)))].sort();
+    select($('#wb-category'),unique('category'),st.category);select($('#wb-model'),unique('model',r=>!st.category||r.category===st.category),st.model);select($('#wb-asin'),unique('asin',r=>(!st.category||r.category===st.category)&&(!st.model||r.model===st.model)),st.asin);
+    $('#wb-filters').querySelectorAll('input,select,button').forEach(n=>n.disabled=mode==='saved');if(active==='Summary')for(const s of ['#wb-category','#wb-model','#wb-asin'])$(s).disabled=true;
+    $('#saved-mode').classList.toggle('active',mode==='saved');$('#computed-mode').classList.toggle('active',mode==='computed');$('#computed-mode').disabled=!!wb.ruleWarnings?.length;$('#hidden-label').hidden=mode!=='saved';
+  }
+  function logic(){const box=$('#logic-body');box.replaceChildren();const list=el('ul');
+    const summary=[['GV','SUMIF(Traffic Data!C:C, 日期, I:I)'],['销售件数（原 Orders）','SUMIFS(Sales Data!Y:Y, Date, 日期, ZM-Category, <>Robot Cleaner Accessory, ZM-Category, <>Wet Dry Vacuum Accessory)'],['Sales USD','SUMIF(Sales Data!C:C, 日期, X:X) × 原表该日 E 列倍率。部分历史只有 ×0.272，后续含 ×1.18，按日期保留。1.18 仅标作原表调整系数。收入未采用件数列的配件排除条件。'],['广告指标','Daily Ad：J 展示、K 点击、M 费用、O Orders、P 归因销售；M/P × 原表货币换算系数（通常 0.272）。重算按日期列匹配，不沿用原公式 A:J 等多列匹配写法。'],['效率指标','销售 CVR=C/B；CTR=G/F；CPC=I/G；ACOS=I/L；ROAS=L/I；广告 CVR=K/G；费用率=I/E；CPO=I/C；单件收入=E/C；广告订单占比=K/C。'],['汇总','相加可加总的量，再重新计算比率。Excel 保存视图显示原 SUBTOTAL 的缓存结果；重算视图按当前日期汇总。'],['缺失与零','保存结果保留原值、原零和原错误。重算中无记录或全为空白为 —；部分空白显示 *；零分母为 —，不伪装成有效的 0%。']];
+    if(active==='Summary'){for(const [a,b]of summary){const li=el('li');li.append(el('strong',a+'：'),el('span',b));list.append(li);}}
+    else{const p=wb.pivots[active];if(p){for(const [a,b]of [['来源',p.source],['行维度',p.rows.join(' / ')],['列维度',p.columns.join(' / ')],['汇总字段',p.measures.map(m=>m.aggregate.toUpperCase()+'('+m.name+')').join('，')],['原表日期筛选',(p.dates.start??'不限')+' 至 '+(p.dates.end??'不限')],['原表字段筛选',p.filters.map(f=>f.field+'='+f.values.join(', ')).join('；')||'全部'],['计算字段',p.calculated.map(f=>f.name+' = '+f.formula).join('；')||'无']]){const li=el('li');li.append(el('strong',a+'：'),el('span',b));list.append(li);}}}
+    box.append(list);box.append(el('p','重算按已核对的 UAE-VC 2.0 规则进行，不执行外部数据连接或任意 Excel 公式。','hint'));
+    if(active==='Inventory')box.append(el('p','每个日期单独对 ASIN 库存求和。卡片只取当前结果最后一个实际库存日期，不累计多日库存。','warning-box'));
+    if(active==='Return Rate')box.append(el('p','退货发生期与销售发生期可能不同。此比率不能解释为同一批订单的最终退货概率，也不应平均各行百分比。原表零分母错误会保留显示。','warning-box'));
+    if(active==='Summary')box.append(el('p','原表 CPO 的分母是排除两类配件后的 Ordered Units，属于费用/件，不能当作费用/独立订单。你的 20 美元目标需要在这个口径下单独核对。超出 Summary 已有日期的原始数据沿用最后已知倍率，需复核。','warning-box'));
+  }
+  function excelFormat(cell,ref,sheet){if(!cell)return '—';let v=cell.v;const f=sheet.styles[cell.s]??0,code=sheet.formats[f]??'';
+    if(typeof v==='number'){
+      if([14,15,16,17,22].includes(f)||/[dy]/i.test(code.replace(/"[^"]*"/g,''))&&!code.includes('%')){const d=X.date(v);if(d)return d;}
+      if([9,10].includes(f)||code.includes('%'))return fmt(v,true);
+      if(f===3||f===1)return intf.format(v);
+    }
+    return fmt(v);
+  }
+  function savedView(){const s=wb.sheets[active],range=s.dimension.split(':');let [minc,minr]=X.addr(range[0]),maxc=Math.max(...Object.keys(s.cells).map(a=>X.addr(a)[0]));
+    const headerEnd=active==='Summary'?1:active==='Traffic'?10:active==='Return Rate'?11:12;
+    const rs=s.rows.filter(r=>r.n>=minr&&($('#include-hidden').checked||!r.hidden));
+    const cols=Array.from({length:maxc-minc+1},(_,i)=>i+minc);
+    return {headers:cols.map(X.letters),rows:rs.map(r=>({n:r.n,hidden:r.hidden,header:r.n<=headerEnd,total:r.cells.some(id=>/^(Grand Total|总计|合计)$/.test(String(s.cells[id].v))),cells:cols.map(c=>{const ref=X.letters(c)+r.n,v=s.cells[ref];return {v:v?.v??null,display:excelFormat(v,ref,s),ref,formula:v?.f,source:[`${active}!${ref}`],error:v?.t==='e'};})})),kind:'saved'};
+  }
+  function filteredRows(){const q=$('#table-search').value.trim().toLowerCase();return view.rows.filter(r=>!q||r.header||r.cells.some(c=>String(c.display??c.v??'').toLowerCase().includes(q)));}
+  function inspect(c,i){const d=$('#cell-detail');d.replaceChildren();d.append(el('p',mode==='saved'?`${active}!${c.ref}`:active+' · '+view.headers[i],'cell-location'));d.append(el('p','值：'+(c.display??fmt(c.v,view.percent?.includes(i)))));d.append(el('p',mode==='saved'?'Excel 保存的值；网页没有重算 Excel 公式或刷新透视缓存。':'浏览器按当前筛选从原始工作表计算。','hint'));
+    if(c.formula)d.append(el('pre',(mode==='saved'?'=':'')+c.formula,'cell-formula'));if(c.blanks)d.append(el('p',`${c.blanks} 个输入为空白或未报告；* 表示已报告数值的部分汇总。`,'warning-box'));if(c.error)d.append(el('p','原文件中的错误值已保留。请在 Excel 检查该单元格。','warning-box'));
+    if(c.source?.length){d.append(el('h3','来源坐标（示例）'));d.append(el('p',c.source.join('、'),'cell-location'));}if(c.n!=null)d.append(el('p',`匹配原始记录 ${c.n} 条。`));$('#cell-inspector').showModal();
+  }
+  function renderTable(){const filtered=filteredRows(),headers=filtered.filter(r=>r.header),data=filtered.filter(r=>!r.header),pages=Math.max(1,Math.ceil(data.length/pageSize));page=Math.min(page,pages-1);const chunk=data.slice(page*pageSize,(page+1)*pageSize),rows=[...headers,...chunk];const t=el('table'),thead=t.createTHead(),hr=thead.insertRow();
+    hr.append(el('th',mode==='saved'?'行':'#','row-number'));for(const h of view.headers)hr.append(el('th',h));const b=t.createTBody();
+    for(const [rn,r]of rows.entries()){const tr=b.insertRow();if(r.header)tr.classList.add('header-row');if(r.total)tr.classList.add('total-row');if(r.hidden)tr.classList.add('filtered-row');const no=el('td',r.n??(page*pageSize+rn+1),'row-number');tr.append(no);r.cells.forEach((c,i)=>{const td=el('td',c.display??fmt(c.v,view.percent?.includes(i)));if(empty(c.v))td.classList.add('blank');if(c.error)td.classList.add('error');if(c.blanks){td.classList.add('partial');td.textContent+=' *';}td.title=(mode==='saved'?active+'!'+c.ref+' · ':'')+'点击查看计算与来源';td.tabIndex=0;td.setAttribute('role','button');td.addEventListener('click',()=>inspect(c,i));td.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();inspect(c,i);}});tr.append(td);});}
+    const wrap=el('div',undefined,'scroll');wrap.append(t);$('#wb-table').replaceChildren(wrap);$('#pagination').replaceChildren(button('上一页',()=>{page--;renderTable();},page===0),el('span',`${page+1} / ${pages} 页`),button('下一页',()=>{page++;renderTable();},page>=pages-1));
+    $('#table-status').textContent=`${data.length} 行记录，${view.headers.length} 列；每页 ${pageSize} 行。${mode==='saved'?'搜索只筛选显示，原表合计保持不变。':'* 为部分空白输入；合计为当前筛选条件合计，搜索只筛选显示。'} 点击单元格可核对来源。`;
+  }
+  function card(name,value,note){const n=el('div',undefined,'card');n.append(el('span',name),el('strong',value),el('small',note));return n;}
+  function cards(){const box=$('#metric-cards');box.replaceChildren();if(mode==='saved'){
+      const s=wb.sheets[active];let last=active==='Summary'?s.rows.find(r=>s.cells['A'+r.n]?.v==='Grand Total'):s.rows.at(-1);if(!last)return;const row=last.n;
+      const specs=active==='Summary'?[['GV','B'],['销售件数','C'],['Sales USD','E'],['广告费 USD','I'],['CPO 费用/件 USD','Q']]:active==='Return Rate'?[['销售件数','D'],['退货件数','E'],['退货率','F']]:[];
+      if(specs.length)for(const [label,col]of specs){const ref=col+row;box.append(card(label,excelFormat(s.cells[ref],ref,s),`Excel 保存汇总 ${active}!${ref}`));}
+      else if(active==='Monthly-Traffic'){const cs=last.cells.filter(a=>X.addr(a)[0]>=7).map(a=>s.cells[a].v).filter(C.isNum);box.append(card('期间 GV',fmt(cs.reduce((a,b)=>a+b,0)),`Excel 保存月度合计之和，第 ${row} 行`));}
+      else {const ref=last.cells.at(-1),label=active==='Inventory'?'最后保存日期可售库存':active==='Traffic'?'期间 GV':'期间销售件数';box.append(card(label,excelFormat(s.cells[ref],ref,s),`Excel 保存汇总 ${active}!${ref}`));}
+      return;
+    }
+    const t=view.rows.at(-1);if(!t)return;
+    const get=i=>fmt(t.cells[i]?.v,view.percent?.includes(i))+(t.cells[i]?.blanks?' *':'');
+    if(active==='Summary'){for(const [n,i]of [['GV',1],['销售件数',2],['Sales USD',4],['广告费 USD',8],['CPO 费用/件 USD',16]])box.append(card(n,get(i),'按所选期间重算'));}
+    else if(active==='Return Rate'){for(const[n,i]of [['销售件数',2],['退货件数',3],['退货率',4]])box.append(card(n,get(i),'汇总分子 ÷ 汇总分母'));}
+    else if(active==='Inventory')box.append(card('最后实际日期可售库存',get(view.headers.length-1),view.periods?.at(-1)??'无数据'));
+    else if(active==='Monthly-Traffic')box.append(card('期间 GV',get(view.headers.length-1),'按 ASIN 月份求和'));
+    else box.append(card(active==='Traffic'?'期间 GV':'期间销售件数',get(view.headers.length-1),'按所选条件汇总'));
+  }
+  function audit(){const box=$('#data-audit');box.replaceChildren();const table=el('table'),h=table.createTHead().insertRow();for(const v of ['来源','记录数','起始日期','截止日期','重复日期/ASIN（或 Portfolio）'])h.append(el('th',v));for(const r of wb.coverage){const tr=table.createTBody().insertRow();for(const v of [r.kind,r.count,r.start,r.end,r.duplicates])tr.append(el('td',fmt(v)));}box.append(table);
+    const errors=names.map(n=>[n,Object.values(wb.sheets[n].cells).filter(c=>c.t==='e').length]).filter(x=>x[1]);if(errors.length)box.append(el('p','Excel 原错误：'+errors.map(x=>x.join(' × ')).join('；')+'。保存视图原样保留。','warning-box'));
+    for(const n of ['Monthly Sale','Inventory','Monthly-Traffic']){const p=wb.pivots[n];if(p){const k=p.source==='Sales Data'?'sales':p.source==='Traffic Data'?'traffic':'inventory';const actual=wb.raw[k].length;if(p.cacheRecords!==actual)box.append(el('p',`${n} 的透视缓存记录数 ${p.cacheRecords}，原始有效日期记录数 ${actual}。缓存可能未覆盖当前原始表；保存结果与重算结果需分别看待。`,'warning-box'));}}
+    if(wb.ruleWarnings?.length)box.append(el('p','重算已停用：'+wb.ruleWarnings.join('；')+'。仍可查看 Excel 保存结果。','warning-box'));
+    box.append(el('p','重算忠实保留重复记录，不自动去重。带 * 的汇总含空白输入。无记录与数值 0 分开显示。源数据日期覆盖不一致时，请核对当前日期范围。','hint'));
+    box.append(el('p',`文件 SHA-256：${hash||'浏览器未提供哈希功能'}`,'hint'));
+  }
+  function render(){if(!wb)return;$('#sheet-title').textContent=active;$('#sheet-description').textContent=descriptions[active];$('#workbook-nav').querySelectorAll('button').forEach(b=>{b.setAttribute('aria-current',b.textContent===active?'page':'false');});controls();logic();
+    const st=states[active],p=wb.pivots[active];$('#scope-note').textContent=mode==='saved'?'当前显示文件保存时的结果与筛选。日期/品类筛选在“按原始数据重算”模式使用。隐藏行默认不显示。':`${st.start} 至 ${st.end} · ${active==='Summary'?'固定原表配件排除规则（仅件数列）':st.category||'全部品类'} · 数据只到来源实际截止日；未来或缺失日期不会补 0。${p?.dates.start?' 原表日期筛选 '+p.dates.start+' 至 '+p.dates.end+'。':''}`;
+    view=mode==='saved'?savedView():C.calculate(wb,active,st);cards();renderTable();audit();
+  }
+  for(const name of names){$('#workbook-nav').append(button(name,()=>{active=name;page=0;$('#table-search').value='';render();},true));}
+  $('#saved-mode').addEventListener('click',()=>{mode='saved';page=0;render();});$('#computed-mode').addEventListener('click',()=>{if(wb.ruleWarnings?.length)return;mode='computed';page=0;render();});
+  $('#wb-filters').addEventListener('submit',e=>{e.preventDefault();if($('#wb-start').value>$('#wb-end').value){$('#scope-note').textContent='开始日期不能晚于结束日期。';return;}states[active]={start:$('#wb-start').value,end:$('#wb-end').value,category:$('#wb-category').value,model:$('#wb-model').value,asin:$('#wb-asin').value};page=0;render();});
+  function keepDates(){states[active].start=$('#wb-start').value;states[active].end=$('#wb-end').value;}
+  $('#wb-category').addEventListener('change',()=>{keepDates();states[active].category=$('#wb-category').value;states[active].model=states[active].asin='';controls();});$('#wb-model').addEventListener('change',()=>{keepDates();states[active].model=$('#wb-model').value;states[active].asin='';controls();});
+  $('#restore-filter').addEventListener('click',()=>{states[active]=savedDefaults(active);page=0;render();});$('#table-search').addEventListener('input',()=>{page=0;renderTable();});$('#include-hidden').addEventListener('change',()=>{page=0;render();});$('#close-inspector').addEventListener('click',()=>$('#cell-inspector').close());
+  $('#export-view').addEventListener('click',()=>{const csvCell=v=>'"'+String(v??'').replace(/^[=+@-]/,"'$&").replaceAll('"','""')+'"';const lines=[view.headers,...filteredRows().map(r=>r.cells.map((c,i)=>c.display??fmt(c.v,view.percent?.includes(i))))].map(r=>r.map(csvCell).join(',')).join('\r\n');const url=URL.createObjectURL(new Blob(['\ufeff'+lines],{type:'text/csv;charset=utf-8'}));const a=el('a');a.href=url;a.download=active+'-'+mode+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+  $('#vc-file').addEventListener('change',async()=>{const file=$('#vc-file').files[0];if(!file)return;const status=$('#load-status');$('#vc-file').disabled=true;status.classList.remove('error');try{const next=await X.load(file,m=>status.textContent=m);hash=crypto.subtle?Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',await file.arrayBuffer())),v=>v.toString(16).padStart(2,'0')).join(''):'';wb=next;states=Object.fromEntries(names.map(n=>[n,savedDefaults(n)]));active='Summary';mode='saved';page=0;$('#table-search').value='';$('#include-hidden').checked=false;$('#intro').hidden=true;$('#work-area').hidden=false;$('#workbook-nav').querySelectorAll('button').forEach(b=>b.disabled=false);$('#file-info').textContent=`${file.name} · ${(file.size/1024/1024).toFixed(2)} MB · 7 张工作表 · 仅当前浏览器`;render();status.textContent='已导入，数据未上传';}catch(e){status.classList.add('error');status.textContent=e.message;}finally{$('#vc-file').disabled=false;}});
+})();
+</script>
+</body></html>

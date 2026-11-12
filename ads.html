@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UAE Amazon ERP</title>
+  <style>:root{font:14px/1.5 "Segoe UI","Microsoft YaHei",sans-serif;color:#172622;background:#f3f6f4;--line:#d8e3dd;--green:#125b46;--muted:#52665d}
+*{box-sizing:border-box}
+body{margin:0}
+.top{display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap;padding:26px max(20px,calc((100vw - 1440px)/2));background:#102c24;color:#fff}
+.eyebrow{font-size:11px;letter-spacing:.16em;color:#b1d8c8}
+h1{margin:4px 0 0;font-size:28px;letter-spacing:-.035em}
+h2{font-size:19px;margin:0 0 8px}
+.badge{border:1px solid #548575;border-radius:20px;padding:4px 12px;color:#e2f6ed}
+main{max-width:1480px;margin:auto;padding:0 20px 36px}
+nav{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+button,input,select,textarea{font:inherit}
+button{border:1px solid var(--line);border-radius:7px;background:white;color:inherit;padding:6px 11px;cursor:pointer}
+button[aria-current=page],button.primary{background:var(--green);border-color:var(--green);color:#fff}
+button:hover{border-color:var(--green)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #187651;outline-offset:2px}
+input,select,textarea{background:#fff;border:1px solid #aabbaf;border-radius:5px;padding:5px 7px;color:inherit}
+label{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+.coverage,#period,.panel{background:#fff;border:1px solid var(--line);border-radius:10px;padding:13px 16px;margin-bottom:12px}
+summary{cursor:pointer;font-weight:600}
+#period{display:flex;gap:8px 14px;align-items:center;flex-wrap:wrap}
+#period-status:empty{display:none}
+#period-status,.hint,.muted{color:var(--muted)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:8px;margin:10px 0 14px}
+.card{padding:9px 12px;border-radius:8px;background:#edf5ef;border:1px solid var(--line)}
+.card strong{display:block;font-size:22px}
+.scroll{overflow:auto;max-height:570px;border:1px solid var(--line);border-radius:8px}
+table{width:100%;border-collapse:separate;border-spacing:0;white-space:nowrap;font-variant-numeric:tabular-nums;background:white}
+th,td{border-bottom:1px solid #e6eee9;text-align:right;padding:7px 9px}
+th{position:sticky;top:0;background:#e5f0e9;z-index:1;color:#243e32;font-size:12px}
+th:first-child,td:first-child{text-align:left}
+td:first-child{max-width:430px;white-space:normal}
+tbody tr:nth-child(even){background:#fafcfb}
+.form-row,.controls{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.controls select{max-width:min(98%,530px)}
+.grid-title{margin:15px 0 6px;font-size:15px}
+.alert{color:#823b13}
+dialog{width:min(520px,calc(100% - 24px));border:1px solid var(--line);border-radius:9px;padding:18px}
+dialog::backdrop{background:#0b2924a3}
+dialog label{display:grid;margin:9px 0}
+dialog input{max-width:160px}
+dialog textarea{width:100%}
+@media(max-width:640px){main{padding:0 10px 24px}.top{padding:16px 12px}td:first-child{min-width:120px}}
+</style>
+</head>
+<body>
+  <header class="top">
+    <div><span class="eyebrow">AMAZON · UNITED ARAB EMIRATES</span><h1>UAE Amazon ERP</h1></div>
+    <div class="badge">VC + Ads · 浏览器导入 · AED</div>
+  </header>
+  <main class="panel" id="import-panel">
+  <p><a href="index.html">返回 VC 工作台</a></p>
+  <h2>导入广告 ERP 快照</h2>
+  <p>请选择本机生成的 ERP index.html；文件仅由浏览器读取。</p>
+  <label>ERP 快照 <input id="erp-file" type="file" accept=".html,.htm"></label>
+  <p id="import-message" role="status"></p>
+</main>
+<script>
+document.querySelector('#erp-file').addEventListener('change',async function(){
+  const file=this.files[0],msg=document.querySelector('#import-message');if(!file)return;this.disabled=true;
+  try{
+    if(file.size>100*1024*1024)throw Error('请选择小于 100 MB 的快照');
+    const text=await file.text(),marker='<script id="snapshot" type="application/json">';
+    const begin=text.indexOf(marker),finish=text.indexOf('<'+'/script>',begin+marker.length);
+    if(begin<0||finish<0)throw Error('请选择 build.py 生成的 ERP 快照 HTML');
+    const d=JSON.parse(text.slice(begin+marker.length,finish));
+    if(!d||!/^\d{4}-\d{2}-\d{2}$/.test(d.start)||!/^\d{4}-\d{2}-\d{2}$/.test(d.end)||d.start>d.end
+      ||!['daily','stock','coverage','quality'].every(k=>Array.isArray(d[k]))
+      ||!['campaign','model','targeting','search_term'].every(k=>Array.isArray(d.ads?.[k])))throw Error('快照格式不完整');
+    document.querySelector('#snapshot').textContent=JSON.stringify(d);
+    const script=document.createElement('script');script.textContent=document.querySelector('#erp-code').textContent;document.body.append(script);
+    document.querySelector('#erp').hidden=false;document.querySelector('#import-panel').remove();
+  }catch(e){msg.textContent=e.message;this.disabled=false;}
+});
+</script>
+<main id="erp" hidden>
+    <nav aria-label="模块">
+      <button data-view="daily" aria-current="page">经营日报</button>
+      <button data-view="ads">广告下钻</button>
+      <button data-view="stock">库存与目标</button>
+      <button data-view="actions">行动记录</button>
+    </nav>
+    <details class="coverage"><summary>来源覆盖与数据质量</summary><div id="coverage"></div></details>
+    <form id="period">
+      <label>开始日期 <input id="start" type="date" required></label>
+      <label>结束日期 <input id="end" type="date" required></label>
+      <button type="submit" class="primary">应用</button>
+      <button type="button" data-days="7">最近 7 天</button>
+      <button type="button" data-days="14">最近 14 天</button>
+      <button type="button" id="latest-ads">最近 7 天广告</button>
+      <p id="period-status" role="status"></p>
+    </form>
+    <section id="screen" aria-live="polite"></section>
+  </main>
+  <dialog id="action-dialog">
+    <form id="action-form">
+      <h2>记录投放调整</h2>
+      <p id="entity"></p>
+      <label>动作
+        <select name="change" required><option>保留</option><option>暂停</option><option>补入 ASIN</option><option>加价</option><option>降价</option><option>复查搜索词</option></select>
+      </label>
+      <div class="form-row"><label>实际当前 Bid <input name="oldBid" type="number" min="0" step=".01"></label>
+        <label>拟调整 Bid <input name="newBid" type="number" min="0" step=".01"></label></div>
+      <label>证据或说明 <textarea name="note" required rows="3"></textarea></label>
+      <div class="form-row"><button type="submit" class="primary">保存到本机</button><button type="button" id="cancel-action">取消</button></div>
+    </form>
+  </dialog>
+  <script id="snapshot" type="application/json">null</script>
+  <script id="erp-code" type="text/plain">"use strict";
+const data = JSON.parse(document.querySelector("#snapshot").textContent);
+const start = document.querySelector("#start");
+const end = document.querySelector("#end");
+const screen = document.querySelector("#screen");
+const status = document.querySelector("#period-status");
+const dialog = document.querySelector("#action-dialog");
+const form = document.querySelector("#action-form");
+const number = new Intl.NumberFormat("en-US", {maximumFractionDigits: 2});
+const labels = {sales:"VC 销售",traffic:"VC 流量",inventory:"VC 库存",campaign:"Campaign",model:"Ads 商品",targeting:"Targeting",search_term:"Search Term"};
+const cutoff = (kind) => data.coverage.find(r=>r.report_type===kind)?.max_date;
+const operatingEnd = [cutoff("sales"),cutoff("traffic"),cutoff("campaign")].every(Boolean)
+  ? [cutoff("sales"),cutoff("traffic"),cutoff("campaign")].sort()[0] : data.end;
+const storageKey = "uae-amazon-erp.actions.v1";
+const dayMs = 86400000;
+let view = "daily";
+let campaign = "";
+let group = "";
+let actionEntity;
+let planAsin = "";
+let planned = "";
+let actions = [];
+try { actions = JSON.parse(localStorage.getItem(storageKey) || "[]"); } catch {}
+if (!Array.isArray(actions)) actions = [];
+
+function element(tag, text, cls) {
+  const node = document.createElement(tag);
+  if (text !== undefined) node.textContent = text;
+  if (cls) node.className = cls;
+  return node;
+}
+const value = (x) => x == null ? "—" : typeof x === "number" ? number.format(x) : String(x);
+const pct = (x) => x == null ? "—" : number.format(x * 100) + "%";
+const div = (a,b) => a != null && b != null && b > 0 ? a / b : null;
+const shift = (d,n) => new Date(Date.parse(d) + n * dayMs).toISOString().slice(0,10);
+const within = (r,a=start.value,b=end.value) => r.date >= a && r.date <= b;
+const sum = (rows,key) => rows.length && rows.every(r => r[key] != null)
+  ? rows.reduce((n,r) => n + r[key],0) : null;
+const button = (label, run) => {
+  const b = element("button", label);
+  b.type = "button";
+  b.addEventListener("click", run);
+  return b;
+};
+
+function table(headers, rows, parent) {
+  if (!rows.length) {
+    parent.append(element("p","当前筛选没有可显示记录。","hint"));
+    return;
+  }
+  const wrap = element("div",undefined,"scroll");
+  const t = element("table");
+  const h = t.createTHead().insertRow();
+  for (const label of headers) {
+    const cell = element("th",label);
+    cell.scope = "col";
+    h.append(cell);
+  }
+  const body = t.createTBody();
+  for (const row of rows) {
+    const line = body.insertRow();
+    for (const item of row) {
+      const cell = line.insertCell();
+      if (item instanceof Node) cell.append(item);
+      else cell.textContent = value(item);
+    }
+  }
+  wrap.append(t);
+  parent.append(wrap);
+}
+
+function panel(title, hint) {
+  const p = element("div",undefined,"panel");
+  p.append(element("h2",title));
+  if (hint) p.append(element("p",hint,"hint"));
+  screen.append(p);
+  return p;
+}
+
+function daily() {
+  const p = panel("经营日报", "VC 件数和收入显示已报告值，含空白记录的日期标为部分。广告花费来自 Campaign。归因购买/点击含不同广告类型，广告费/件只在同日销售件数完整时计算。");
+  const rows = data.daily.filter(r=>within(r));
+  const previous = rows.length ? data.daily.filter(r=>within(r,shift(start.value,-rows.length),shift(start.value,-1))) : [];
+  const cards = element("div",undefined,"cards");
+  for (const [key,name,blank] of [["units","VC 件数","unit_blanks"],["revenue","VC 收入 · AED","revenue_blanks"],["views","Featured Offer PV"],["spend","广告费用 · AED"],["purchases","归因购买"]]) {
+    const total = sum(rows,key);
+    const complete = !blank || rows.every(r=>r[blank]===0);
+    const prior = previous.length === rows.length && (!blank || previous.every(r=>r[blank]===0)) ? sum(previous,key) : null;
+    const c = element("div",undefined,"card");
+    c.append(element("span",name),element("strong",value(total)),
+      element("span", !complete && total != null ? "含部分数据" : "前等长周期 " + value(prior),"muted"));
+    cards.append(c);
+  }
+  p.append(cards);
+  table(["日期","GV","VC 件数","件数 / GV","VC 收入 AED","广告展示","广告点击","CTR","广告费 AED","CPC","归因购买","归因销售 AED","ACOS","ROAS","归因购买 / 点击","广告费 / VC 收入","广告费 / 件 AED","单件收入 AED","归因购买 / VC 件数"],
+    rows.map(r=>[r.date,r.views,r.unit_blanks && r.units != null ? value(r.units)+"（部分）" : r.units,
+      pct(r.unit_blanks===0?div(r.units,r.views):null),
+      r.revenue_blanks && r.revenue != null ? value(r.revenue)+"（部分）" : r.revenue,
+      r.impressions,r.clicks,pct(div(r.clicks,r.impressions)),r.spend,div(r.spend,r.clicks),r.purchases,
+      r.ad_sales,pct(div(r.spend,r.ad_sales)),div(r.ad_sales,r.spend),pct(div(r.purchases,r.clicks)),
+      pct(r.revenue_blanks===0?div(r.spend,r.revenue):null),r.unit_blanks===0?div(r.spend,r.units):null,
+      r.unit_blanks===0&&r.revenue_blanks===0?div(r.revenue,r.units):null,
+      pct(r.unit_blanks===0?div(r.purchases,r.units):null)]),p);
+}
+
+function aggregate(rows, key) {
+  const groups = new Map();
+  const metrics = ["spend","clicks","purchases","ad_sales"];
+  for (const row of rows) {
+    const id = key(row);
+    if (!groups.has(id)) groups.set(id, {...row, items:[]});
+    const group = groups.get(id);
+    if (row.date >= group.date) Object.assign(group,row);
+    group.items.push(row);
+  }
+  return [...groups.values()].map(row=>{
+    for (const key of metrics) row[key]=sum(row.items,key);
+    return row;
+  }).sort((a,b)=>(b.spend??-1)-(a.spend??-1));
+}
+
+function choose(label, options, current, change) {
+  const node = element("label",label+" ");
+  const control = element("select");
+  for (const [id,name] of options) {
+    const opt = element("option",name);
+    opt.value=id;
+    control.append(opt);
+  }
+  control.value = current;
+  control.addEventListener("change",()=>change(control.value));
+  node.append(control);
+  return node;
+}
+
+function noteEntity(kind,row) {
+  actionEntity = {kind, campaign:row.campaign_id, group:row.ad_group_id??null,
+    entity:row.asin ?? row.target_id, label:row.label??row.asin??row.target_id,
+    start:start.value,end:end.value, spend:row.spend, purchases:row.purchases};
+  form.reset();
+  document.querySelector("#entity").textContent = [actionEntity.label, actionEntity.campaign, actionEntity.group, actionEntity.entity].filter(Boolean).join(" / ");
+  dialog.showModal();
+}
+
+function ads() {
+  const p = panel("广告下钻", "选 Campaign 和 Ad Group 后，按 Ads 商品、Targeting、Search Term 顺序看。各报表分别汇总。Bid 与状态以后台或最新配置为准。");
+  const cr = aggregate(data.ads.campaign.filter(r=>within(r)),r=>r.campaign_id);
+  if (!cr.some(r=>r.campaign_id===campaign)) campaign=cr[0]?.campaign_id??"";
+  const controls=element("div",undefined,"controls");
+  controls.append(choose("Campaign", cr.map(r=>[r.campaign_id,(r.campaign_name??r.campaign_id)+" · "+value(r.spend)+" AED"]),campaign,
+    id=>{campaign=id;group="";render();}));
+  const gr = new Map();
+  for (const kind of ["model","targeting","search_term"]) {
+    for (const r of data.ads[kind]) {
+      if (r.campaign_id===campaign && r.ad_group_id && within(r)) gr.set(r.ad_group_id,r.ad_group_name??r.ad_group_id);
+    }
+  }
+  if (!gr.has(group)) group=gr.keys().next().value??"";
+  controls.append(choose("Ad Group",[...gr],group,id=>{group=id;render();}));
+  p.append(controls);
+  const selected = cr.find(r=>r.campaign_id===campaign);
+  if (selected) p.append(element("p", `${selected.ad_product} · Campaign ID ${campaign} · Ad Group ID ${group||"—"} · Campaign 花费 ${value(selected.spend)} AED`, "hint"));
+  for (const kind of ["model","targeting","search_term"]) {
+    const last = data.coverage.find(r=>r.report_type===kind)?.max_date;
+    const rows = aggregate(data.ads[kind].filter(r=>r.campaign_id===campaign&&r.ad_group_id===group&&within(r)),
+      r=>JSON.stringify([r.asin,r.target_id,r.match,kind==="search_term"?r.label:null]));
+    p.append(element("h3",labels[kind],"grid-title"));
+    p.append(element("p",`该报表截至 ${last??"—"}${last&&last<end.value?"，所选期间仅有部分覆盖。":"。"}`,"hint"));
+    const headers=["商品 / 定向 / 查询","ASIN / Target ID","Match","花费 AED","点击","归因购买","CPC","ROAS"];
+    const cells=rows.map(r=>[r.label,r.asin??r.target_id,r.match,r.spend,r.clicks,r.purchases,div(r.spend,r.clicks),div(r.ad_sales,r.spend)]);
+    if (kind!=="search_term") {
+      headers.push("行动");
+      cells.forEach((r,i)=>r.push(button("记录",()=>noteEntity(kind,rows[i]))));
+    }
+    table(headers,cells,p);
+  }
+}
+
+function stock() {
+  const p=panel("库存与目标","使用最新单日 Amazon 可售快照。覆盖天数需有连续 7 天该 ASIN 的已报告件数。活动缺口按你填写的剩余销量目标计算，适用于库存快照与目标时点一致的场景。");
+  const controls=element("div",undefined,"controls");
+  const opt=[["","选择 ASIN"],...data.stock.map(r=>[r.asin,`${r.asin} · ${r.model??"未映射"}`])];
+  const result=element("p","","hint");
+  const target=element("input");
+  target.type="number";
+  target.min="0";
+  target.step="1";
+  target.value=planned;
+  const label=element("label","剩余目标件数 ");
+  label.append(target);
+  function calculate() {
+    const r=data.stock.find(x=>x.asin===planAsin);
+    const v=Number(planned);
+    result.textContent=r?.available!=null&&planned!==""&&Number.isInteger(v)&&v>=0
+      ? `可售 ${value(r.available)} 件 · 现货缺口 ${value(Math.max(0,v-r.available))} 件`
+      : "请选择 ASIN 并输入剩余目标件数。";
+  }
+  controls.append(choose("ASIN",opt,planAsin,id=>{planAsin=id;calculate();}),label);
+  target.addEventListener("input",()=>{planned=target.value;calculate();});
+  calculate();
+  p.append(controls,result);
+  table(["ASIN","型号","库存日期","可售件数","过去 7 天件数","库存覆盖天数"],data.stock.map(r=>[r.asin,r.model,r.date,r.available,r.units7,div(r.available,r.units7==null?null:r.units7/7)]),p);
+}
+
+function storeActions() {
+  try { localStorage.setItem(storageKey,JSON.stringify(actions));return true; }
+  catch { return false; }
+}
+
+function actionView() {
+  const p=panel("行动记录","记录为本机浏览器草稿。完成后台操作后手工标记执行，建议导出备份。");
+  p.append(button("导出 JSON",()=>{
+    const url=URL.createObjectURL(new Blob([JSON.stringify(actions,null,2)],{type:"application/json"}));
+    const link=element("a");
+    link.href=url;link.download="uae-ad-actions.json";link.click();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }));
+  table(["商品 / Target","Campaign / Group / ID","动作","当前 Bid","拟调价","证据期","备注","状态"],actions.map(r=>[
+    r.label,[r.campaign,r.group,r.entity].filter(Boolean).join(" / "),r.change,r.oldBid??null,r.newBid??null,
+    `${r.start}–${r.end}`,r.note,r.executed??button("标记已执行",()=>{
+      r.executed=new Date().toISOString();
+      if (!storeActions()) status.textContent="浏览器拒绝持久化，建议导出记录。";
+      render();
+    })
+  ]),p);
+}
+
+function render() {
+  screen.replaceChildren();
+  document.querySelectorAll("nav button").forEach(b=>{
+    if(b.dataset.view===view)b.setAttribute("aria-current","page");
+    else b.removeAttribute("aria-current");
+  });
+  ({daily,ads,stock,actions:actionView})[view]();
+}
+
+document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()=>{view=b.dataset.view;render();}));
+document.querySelector("#period").addEventListener("submit",event=>{
+  event.preventDefault();
+  if (start.value > end.value) { status.textContent="开始日期不能晚于结束日期。";return; }
+  status.textContent="";
+  render();
+});
+document.querySelectorAll("[data-days]").forEach(b=>b.addEventListener("click",()=>{
+  end.value=operatingEnd;
+  start.value=[data.start,shift(operatingEnd,1-Number(b.dataset.days))].sort().at(-1);
+  status.textContent="";
+  render();
+}));
+document.querySelector("#latest-ads").addEventListener("click",()=>{
+  end.value=cutoff("campaign")??data.end;
+  start.value=[data.start,shift(end.value,-6)].sort().at(-1);
+  status.textContent="";
+  view="ads";
+  render();
+});
+document.querySelector("#cancel-action").addEventListener("click",()=>dialog.close());
+form.addEventListener("submit",event=>{
+  event.preventDefault();
+  const fields=new FormData(form);
+  const change=fields.get("change");
+  const oldBid=fields.get("oldBid")===""?null:Number(fields.get("oldBid"));
+  const newBid=fields.get("newBid")===""?null:Number(fields.get("newBid"));
+  if (["加价","降价"].includes(change) && (oldBid===null||newBid===null||
+      (change==="加价"?newBid<=oldBid:newBid>=oldBid))) {
+    alert("请填写当前 Bid 和符合动作方向的拟调 Bid。");return;
+  }
+  actions.unshift({...actionEntity,change,oldBid,newBid,note:fields.get("note"),created:new Date().toISOString()});
+  status.textContent=storeActions()?"已保存行动草稿。":"浏览器拒绝持久化，建议导出记录。";
+  dialog.close();
+});
+start.min=end.min=data.start;
+start.max=end.max=data.end;
+start.value=[data.start,shift(operatingEnd,-6)].sort().at(-1);
+end.value=operatingEnd;
+const coverage=document.querySelector("#coverage");
+table(["来源","已接受起始日","已接受截止日"],data.coverage.map(r=>[labels[r.report_type]??r.report_type,r.min_date,r.max_date]),coverage);
+if(data.quality.length) coverage.append(element("p","历史广告导入异常："+data.quality.map(r=>`${r.report_type} ${r.status} ×${r.count}`).join("，"),"hint"));
+render();
+</script>
+</body>
+</html>
